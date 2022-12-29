@@ -2,7 +2,6 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 from telebot import TeleBot
 
-
 from bot.models import User,Post
 from bot.management.commands.keyboards import menu,my_posts,delete_post
 from bot.management.commands.text import my_post_text
