@@ -47,7 +47,6 @@ def delete_post(id):
     return keyboard
 
 
-
     # def my_posts(user,page=1):
     # posts = Post.objects.filter(user=user)
     # paginator = InlineKeyboardPaginator(

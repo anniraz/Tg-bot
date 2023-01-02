@@ -19,8 +19,10 @@ class Command(BaseCommand):
         bot.infinity_polling()	
 
 
+
+
 @bot.message_handler(commands=['start'])
-def start(message):
+def start(message): 
     # create user or get user
     User.objects.get_or_create(
         external_id=message.chat.id,
@@ -29,10 +31,10 @@ def start(message):
     )
     bot.send_message(message.chat.id,'hi  (^-^)/',reply_markup=menu())
 
-
-page=1
-count=10
-o=0
+# for pagination
+page=1  #for how many posts will show there
+count=0 #posts count
+o=0 #auxiliary variable
 
 @bot.callback_query_handler(func=lambda call: True)
 def callbacks(call):
@@ -54,19 +56,29 @@ def callbacks(call):
         bot.send_message(chat_id=chat_id, text='<b>My Posts</b>',
                                reply_markup=my_posts(user=User.objects.get(external_id=call.message.chat.id),count=count,page=page,o=o), parse_mode='HTML')
     
+    # for pagination
     if call.data == 'next_page':
         if page < count:
             o=page
             page = page + 1
+            bot.delete_message(call.message.chat.id, call.message.message_id)
+            call.data='my_posts'
+            return callbacks(call)
+
 
     if call.data == 'back_page':
         if page > 1:
             page=o
             o = page - 1
-
+            bot.delete_message(call.message.chat.id, call.message.message_id)
+            call.data='my_posts'
+            return callbacks(call)
+    # # # #
 
     if call.data in [str(i.id) for i in Post.objects.filter(user=User.objects.get(external_id=call.message.chat.id))]:
+
         # for a detailed view of the post
+
         post=Post.objects.get(id=call.data)
         text=my_post_text.format(post.title,post.text)
         if not post.image :
@@ -74,6 +86,8 @@ def callbacks(call):
         else:
             bot.send_photo(chat_id=chat_id,photo=open(f'media/{post.image}', 'rb'),caption=text, parse_mode='HTML',reply_markup=delete_post(post.id))
             
+
+
     if call.data in [f'delete {i.id}' for i in Post.objects.filter(user=User.objects.get(external_id=call.message.chat.id))]:
         # to delete a post
         id=call.data.split(' ')[-1]
